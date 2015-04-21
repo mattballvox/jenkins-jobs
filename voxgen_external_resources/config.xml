@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This is a template Job that must &lt;b&gt;NOT&lt;/b&gt; be changed. &#xd;
+&lt;br&gt;&#xd;
+&lt;br&gt;&#xd;
+What this Job does:&#xd;
+&lt;ul&gt;&#xd;
+	&lt;li&gt;Gather &lt;b&gt;ALL&lt;/b&gt; external resources (grammars, audios, xfer rules file)&lt;/li&gt;  &#xd;
+	&lt;li&gt;Organise the artifacts from &lt;b&gt;voxgen_ci&lt;/b&gt; and external resources and place into directory&#xd;
+	  to be picked up by a deployment job.&#xd;
+	&lt;li&gt;On successful execution we can &apos;Promote&apos; the build and trigger deployment to DEV, QA, or PROD&lt;/li&gt;&#xd;
+&lt;/ul&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>2</daysToKeep>
+    <numToKeep>5</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>Job</name>
+          <description></description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.plugins.copyartifact.BuildSelectorParameter plugin="copyartifact@1.33">
+          <name>BuildSelection</name>
+          <description></description>
+          <defaultSelector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+        </hudson.plugins.copyartifact.BuildSelectorParameter>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.copyartifact.CopyArtifactPermissionProperty plugin="copyartifact@1.33">
+      <projectNameList>
+        <string>voxgen_dev_deploy</string>
+        <string>voxgen_qa_deploy</string>
+      </projectNameList>
+    </hudson.plugins.copyartifact.CopyArtifactPermissionProperty>
+    <hudson.plugins.promoted__builds.JobPropertyImpl plugin="promoted-builds@2.19">
+      <activeProcessNames>
+        <string>Deploy to QA</string>
+        <string>Deploy to DEV</string>
+      </activeProcessNames>
+    </hudson.plugins.promoted__builds.JobPropertyImpl>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.33">
+      <project>${Job}</project>
+      <filter>**/*.war</filter>
+      <target>$JOB_NAME-$BUILD_NUMBER/</target>
+      <excludes></excludes>
+      <selector class="hudson.plugins.copyartifact.ParameterizedBuildSelector">
+        <parameterName>BuildSelection</parameterName>
+      </selector>
+      <flatten>true</flatten>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
+  </builders>
+  <publishers>
+    <au.com.centrumsystems.hudson.plugin.buildpipeline.trigger.BuildPipelineTrigger plugin="build-pipeline-plugin@1.4.5">
+      <configs/>
+      <downstreamProjectNames>voxgen_dev_deploy, voxgen_qa_deploy</downstreamProjectNames>
+    </au.com.centrumsystems.hudson.plugin.buildpipeline.trigger.BuildPipelineTrigger>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.25">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+</project>
